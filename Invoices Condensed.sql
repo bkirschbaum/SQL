@@ -1,0 +1,33 @@
+
+
+
+USE FM_Operations;
+SELECT  Cost_Center,Month,Year,Sum(Amount)
+/* Add INTO to add to a New Table */
+From ( 
+
+Select 
+
+NK.[Cost Center] Cost_Center,Month(VTRANS.LASTSETTLEDATE) Month, Year(VTRANS.LASTSETTLEDATE) Year,VIJ.INVOICEAMOUNT Amount, ROW_NUMBER() OVER(PARTITION BY VIJ.RECID ORDER BY VIJ.RECID) duplicateCounter
+
+FROM AX_Target.dbo.VENDINVOICEJOUR VIJ
+INNER JOIN AX_Target.dbo.VENDTRANS  VTRANS on VIJ.LEDGERVOUCHER = VTRANS.VOUCHER
+LEFT JOIN ConsolidatedReports.dbo.Purchasing_View PV on PV.Purchase_Order = VIJ.PURCHID
+LEFT JOIN AX_Target.dbo.PURCHLINE PL on PV.INVENTTRANSID = PL.INVENTTRANSID
+LEFT JOIN AX_Target.dbo.PURCHREQTABLE PRT ON PL.PURCHREQID = PRT.PURCHREQID
+LEFT JOIN AX_Target.dbo.MXLPurchLine MXLPL ON MXLPL.INVENTTRANSID = PL.INVENTTRANSID 
+LEFT JOIN AX_Target.dbo.PURCHTABLE PT ON PV.Purchase_Order = PT.PURCHID 
+LEFT JOIN AX_Target.dbo.VENDTABLE VTable ON PV.Vendor_Account = VTable.ACCOUNTNUM 
+LEFT JOIN FM_OPERATIONS.dbo.Item_Description_Sector_Trade IDST on PV.Item_description = IDST.Item_Description
+LEFT JOIN FM_OPERATIONS.dbo.[NamingKey] NK on NK.INVENTSITEID = PT.INVENTSITEID
+LEFT JOIN FM_OPERATIONS.dbo.[Ministry Grouping] MG on NK.Minstry = MG.Ministry
+
+WHERE        (VTRANS.LASTSETTLEDATE BETWEEN CONVERT(DATETIME, '2017-01-01 00:00:00', 102) AND CONVERT(DATETIME, '2017-1-31 00:00:00', 102)) AND 
+                         (VIJ.PURCHID LIKE N'MFAC%')
+)
+
+a
+
+where duplicateCounter = 1
+
+Group by Cost_Center,Month,Year

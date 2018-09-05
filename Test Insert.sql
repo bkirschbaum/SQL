@@ -55,10 +55,16 @@ END
 
 
 
+/* Testing Code 
 
+--- Clear Table ---
 
 TRUNCATE TABLE Test
 
+--- Check Table Contents ---
 
 Select * from Test
+
+
+*/
 
